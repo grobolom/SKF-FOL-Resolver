@@ -21,7 +21,7 @@
 
 ;; A variable - it has a default value of nil, but if can be assigned
 ;; the value of a constant
-(defstruct (var) (value nil))
+(defstruct (svar) (value nil))
 
 
 ;; Defining a complex sentence here
@@ -62,3 +62,17 @@
 ;; Commented out This bullshit so I can build according to the book's pseudocode.
 ;; May require some modification of our structs.
 ;; Guess we'll see.
+
+(defun unify (x y +theta+)
+  "returns a substitution to make x and y identical"
+  (cond ((eq +theta+ 'failure) 'failure)
+	((eql x y) +theta+)
+	((var-p x) (unify-var x y +theta+))
+	((var-p y) (unify-var y x +theta+))
+	((and (compound-p x) (compound-p y))
+	 (unify (args x) (arg y)
+		(unify (op x) (op y) +theta+)))
+	((and (listp x) (listp y))
+	 (unify (cdr x) (cdr y)
+		(unify (car x) (car y) +theta+)))
+	(t 'failure)))
