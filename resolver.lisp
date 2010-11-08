@@ -21,7 +21,7 @@
 
 ;; A variable - it has a default value of nil, but if can be assigned
 ;; the value of a constant
-(defstruct (var) (value nil))
+(defstruct (svar) (value nil))
 
 
 ;; Defining a complex sentence here
