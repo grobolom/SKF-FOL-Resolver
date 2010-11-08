@@ -76,3 +76,10 @@
 	 (unify (cdr x) (cdr y)
 		(unify (car x) (car y) +theta+)))
 	(t 'failure)))
+
+(defun unify-var (var x +theta+)
+  "returns a substitution"
+; need some association code here
+; we're going to have a data structure : list with two elements
+; ( variable value ) that represents {var/val}
+  (print var )(print x )(print +theta+))
