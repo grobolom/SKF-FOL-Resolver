@@ -42,3 +42,10 @@
 ;; We first need a substitution finder function that returns the substitution
 ;; +theta+ that is a set of {x1/y1 .. xn/yn} substitutions that fits the two
 ;; clauses X and Y
+
+(defun get-substitution (A B) ; These are Clauses AKA atomic sentences AKA stmt
+  (if (and (stmt-p A) ; if A is a statement
+	   (stmt-p B) ; and B is too
+	   (eq (stmt-pred A) (stmt-pred B))) ;and the predicates are equal
+      (build-substitution A B) ; build the substitution
+      nil))
