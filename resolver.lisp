@@ -45,17 +45,20 @@
 ;; +theta+ that is a set of {x1/y1 .. xn/yn} substitutions that fits the two
 ;; clauses X and Y
 
-(defun build-substitution (A B) ;Takes two clauses
-  (let ((a-terms (stmt-terms A))
-	(b-terms (stmt-terms B)))
-    (print a-terms)
-    (print b-terms)
-    t))
+;(defun build-substitution (A B) ;Takes two clauses
+;  (let ((a-terms (stmt-terms A))
+;	(b-terms (stmt-terms B)))
+;    (print a-terms)
+;    (print b-terms)
+;    t))
 
-(defun get-substitution (A B) ; These are Clauses AKA atomic sentences AKA stmt
-  (if (and (stmt-p A) ; if A is a statement
-	   (stmt-p B) ; and B is too
-	   (eq (stmt-pred A) (stmt-pred B))) ;and the predicates are equal
-      (build-substitution A B) ; build the substitution
-      nil))
+;(defun get-substitution (A B) ; These are Clauses AKA atomic sentences AKA stmt
+;  (if (and (stmt-p A) ; if A is a statement
+;	   (stmt-p B) ; and B is too
+;	   (eq (stmt-pred A) (stmt-pred B))) ;and the predicates are equal
+;      (build-substitution A B) ; build the substitution
+;      nil))
 
+;; Commented out This bullshit so I can build according to the book's pseudocode.
+;; May require some modification of our structs.
+;; Guess we'll see.
