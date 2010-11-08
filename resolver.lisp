@@ -33,3 +33,12 @@
 
 (defstruct (sentence)
   statements)
+
+;; Okay.. so now the Unification function?
+
+;; This function will take two complex sentences (struct sentence)
+;; it will output the combined statement with the proper substitutions
+
+;; We first need a substitution finder function that returns the substitution
+;; +theta+ that is a set of {x1/y1 .. xn/yn} substitutions that fits the two
+;; clauses X and Y
