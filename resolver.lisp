@@ -7,21 +7,24 @@
 
 
 ;; An Atomic Sentence - Predicate + Terms
+
+;!!! Might Not Be Necessary
 (defstruct (stmt) pred terms)
 
 
 ;; A Function - this is similar to an atomic sentence
-(defstruct (func) pred terms)
+
+;!!! Might Not Be Necessary
+;(defstruct (func) pred terms)
 
 
-;;  This is a Skolem Function - I expect this to have slightly different functionality
-;;  than the standard function, so it is a different struct. EX: F(x)
-(defstruct (skfunc) pred vars)
+;; This is now any compound statement : King(x) | Knows(y,Mother(y))
+(defstruct (compound) op args)
 
 
 ;; A variable - it has a default value of nil, but if can be assigned
 ;; the value of a constant
-(defstruct (svar) (value nil))
+(defstruct (u-var) name)
 
 
 ;; Defining a complex sentence here
@@ -62,3 +65,26 @@
 ;; Commented out This bullshit so I can build according to the book's pseudocode.
 ;; May require some modification of our structs.
 ;; Guess we'll see.
+
+(defun unify (x y +theta+)
+  "returns a substitution to make x and y identical"
+  (cond ((eq +theta+ 'failure) 'failure)
+	((eql x y) +theta+)
+	((u-var-p x) (unify-var x y +theta+))
+	((u-var-p y) (unify-var y x +theta+))
+	((and (compound-p x) (compound-p y))
+	 (unify (compound-args x) (compound-args y)
+		(unify (compound-op x) (compound-op y) +theta+)))
+	((and (listp x) (listp y))
+	 (unify (cdr x) (cdr y)
+		(unify (cadr x) (cadr y) +theta+)))
+	(t 'failure)))
+
+(defun unify-var (var x +theta+)
+  "returns a substitution"
+; need some association code here
+; we're going to have a data structure : list with two elements
+; ( variable value ) that represents {var/val}
+  (cond ((assoc var +theta+) (unify (cadr (assoc var +theta+)) x +theta+))
+	((assoc x +theta+) (unify var (cadr (assoc x +theta+)) +theta+))
+	(t (cons (list var x) +theta+))))
