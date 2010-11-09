@@ -7,21 +7,24 @@
 
 
 ;; An Atomic Sentence - Predicate + Terms
+
+;!!! Might Not Be Necessary
 (defstruct (stmt) pred terms)
 
 
 ;; A Function - this is similar to an atomic sentence
-(defstruct (func) pred terms)
+
+;!!! Might Not Be Necessary
+;(defstruct (func) pred terms)
 
 
-;;  This is a Skolem Function - I expect this to have slightly different functionality
-;;  than the standard function, so it is a different struct. EX: F(x)
-(defstruct (skfunc) pred vars)
+;; This is now any compound statement : King(x) | Knows(y,Mother(y))
+(defstruct (compound) op args)
 
 
 ;; A variable - it has a default value of nil, but if can be assigned
 ;; the value of a constant
-(defstruct (svar) (value nil))
+(defstruct (u-var) name)
 
 
 ;; Defining a complex sentence here
@@ -67,14 +70,14 @@
   "returns a substitution to make x and y identical"
   (cond ((eq +theta+ 'failure) 'failure)
 	((eql x y) +theta+)
-	((var-p x) (unify-var x y +theta+))
-	((var-p y) (unify-var y x +theta+))
+	((u-var-p x) (unify-var x y +theta+))
+	((u-var-p y) (unify-var y x +theta+))
 	((and (compound-p x) (compound-p y))
-	 (unify (args x) (arg y)
-		(unify (op x) (op y) +theta+)))
+	 (unify (compound-args x) (compound-args y)
+		(unify (compound-op x) (compound-op y) +theta+)))
 	((and (listp x) (listp y))
 	 (unify (cdr x) (cdr y)
-		(unify (car x) (car y) +theta+)))
+		(unify (cadr x) (cadr y) +theta+)))
 	(t 'failure)))
 
 (defun unify-var (var x +theta+)
