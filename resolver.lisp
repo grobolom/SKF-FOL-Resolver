@@ -82,4 +82,6 @@
 ; need some association code here
 ; we're going to have a data structure : list with two elements
 ; ( variable value ) that represents {var/val}
-  (print var )(print x )(print +theta+))
+  (cond ((assoc var +theta+) (unify (cadr (assoc var +theta+)) x +theta+))
+	((assoc x +theta+) (unify var (cadr (assoc x +theta+)) +theta+))
+	(t (cons (list var x) +theta+))))
