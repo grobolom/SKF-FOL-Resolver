@@ -9,7 +9,7 @@
 ;; An Atomic Sentence - Predicate + Terms
 
 ;!!! Might Not Be Necessary
-;(defstruct (stmt) pred terms)
+(defstruct (stmt) pred terms)
 
 
 ;; A Function - this is similar to an atomic sentence
@@ -19,25 +19,17 @@
 
 
 ;; This is now any compound statement : King(x) | Knows(y,Mother(y))
-(defstruct (compound
-	     (:print-function
-	      (lambda (struct stream depth)
-		(declare (ignore depth))
-		(format stream "~A(~A)"
-			(compound-op struct)
-			(compound-args struct)))))
-	     op args)
+(defstruct (compound) op args)
 
 
 ;; A variable - it has a default value of nil, but if can be assigned
 ;; the value of a constant
-(defstruct (u-var
-	     (:print-function
-	      (lambda (struct stream depth)
-		(declare (ignore depth))
-		(format stream "~A"
-			(u-var-name struct)))))
-	     name)
+<<<<<<< .merge_file_p89NtZ
+(defstruct (svar) (value nil))
+=======
+(defstruct (u-var) name)
+>>>>>>> .merge_file_tBRIPW
+
 
 ;; Defining a complex sentence here
 
@@ -46,10 +38,10 @@
 ;; but since we are assumed to be in SNF, we only need to worry about
 ;; the NOT symbol, or ! - this is because SNF sentences must be split
 ;; by ORS, and complex sentences are always split by ANDS.
-;(defstruct (sentence) statements)
+(defstruct (sentence) statements)
 
 ;; Defining a substitution as below
-;(defstruct (substitution) vars values)
+(defstruct (substitution) vars values)
 
 ;; Okay.. so now the Unification function?
 
@@ -76,32 +68,31 @@
 
 ;; Commented out This bullshit so I can build according to the book's pseudocode.
 ;; May require some modification of our structs.
+<<<<<<< .merge_file_p89NtZ
+;; Guess we'll see.
+=======
 ;; Guess we'll see.
 
 (defun unify (x y +theta+)
   "returns a substitution to make x and y identical"
-  (print "====UNIFY====")(print x)(print y)(print +theta+)
   (cond ((eq +theta+ 'failure) 'failure)
 	((eql x y) +theta+)
-	((var? x) (unify-var x y +theta+))
-	((var? y) (unify-var y x +theta+))
+	((u-var-p x) (unify-var x y +theta+))
+	((u-var-p y) (unify-var y x +theta+))
 	((and (compound-p x) (compound-p y))
 	 (unify (compound-args x) (compound-args y)
 		(unify (compound-op x) (compound-op y) +theta+)))
 	((and (listp x) (listp y))
 	 (unify (cdr x) (cdr y)
-		(unify (car x) (car y) +theta+)))
+		(unify (cadr x) (cadr y) +theta+)))
 	(t 'failure)))
 
 (defun unify-var (var x +theta+)
   "returns a substitution"
-  (print "====VARR====")(print var)(print x)(print +theta+)
 ; need some association code here
 ; we're going to have a data structure : list with two elements
 ; ( variable value ) that represents {var/val}
   (cond ((assoc var +theta+) (unify (cadr (assoc var +theta+)) x +theta+))
 	((assoc x +theta+) (unify var (cadr (assoc x +theta+)) +theta+))
 	(t (cons (list var x) +theta+))))
-
-(defun var? (a)
-    (when (symbolp a) (eq (char (string a) 0) #\?)))
+>>>>>>> .merge_file_tBRIPW
