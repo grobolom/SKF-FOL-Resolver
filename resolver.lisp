@@ -10,6 +10,9 @@
 			(compound-args struct)))))
 	     op args)
 
+(defun m-c (a b)
+  (make-compound :op a :args b))
+
 (defun unify (x y +theta+)
   (cond ((eq +theta+ 'failure) 'failure)
 	((eql x y) +theta+)
@@ -32,7 +35,7 @@
     (when (symbolp a) (eq (char (string a) 0) #\?)))
 
 (defun subs (clause +theta+)
-  (print "=====SUBS=====")(print clause)(print +theta+)
+;  (print "=====SUBS=====")(print clause)(print +theta+)
   (cond ((null clause) nil)
 	((compound-p clause)
 	 (make-compound :op (compound-op clause)
