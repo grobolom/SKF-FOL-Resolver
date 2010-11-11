@@ -31,19 +31,6 @@
 (defun var? (a)
     (when (symbolp a) (eq (char (string a) 0) #\?)))
 
-;(defun substite (clause +theta+)
-;  "substitutes variables in the clause with the substitution"
-; (let ((sub (cadr (assoc clause +theta+))))
-;   (cond ((compound-p clause) ; Compound? Keep the name, go inside to substitute.
-;	   (make-compound :op (compound-op clause)
-;			  :args (substite (compound-args clause) +theta+)))
-;	  ((var? clause) (cond ((and sub(compound-p sub))
-;				(substite sub +theta+))
-;			       (sub sub)
-;			       (t clause)))
-;	  ((listp clause) (cons (substite (car clause) +theta+) (substite (cdr clause) +theta+)))
-;	  (t clause))))
-
 (defun subs (clause +theta+)
   (print "=====SUBS=====")(print clause)(print +theta+)
   (cond ((null clause) nil)
