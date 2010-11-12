@@ -48,3 +48,4 @@
 		 (t clause))))
 	((listp clause)(cons (subs (car clause) +theta+) (subs (cdr clause) +theta+)))
 	(t clause)))
+
