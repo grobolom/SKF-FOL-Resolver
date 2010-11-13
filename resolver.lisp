@@ -10,7 +10,7 @@
 			(compound-args struct)))))
 	     op args)
 
-(defun m-c (a b)
+(defun m-c (a &rest b)
   (make-compound :op a :args b))
 
 (defun unify (x y +theta+)
@@ -49,3 +49,19 @@
 	((listp clause)(cons (subs (car clause) +theta+) (subs (cdr clause) +theta+)))
 	(t clause)))
 
+(defun sd-apart (KB)
+  (loop
+     for stmt in KB
+     for i from 1
+       collect (var-replace stmt i)))
+
+(defun var-replace (stmt i)
+  (print "REPLACE")(print stmt)(print i)
+  (cond ((compound-p stmt)
+	 (m-c (compound-op stmt)(list (var-replace (compound-args stmt) i))))
+	((null stmt) nil)
+	((listp stmt)
+	 (cons (var-replace (car stmt) i) (var-replace (cdr stmt) i)))
+	((var? stmt)
+	 (intern (concatenate 'string (string stmt)(write-to-string i))))
+	(t stmt)))
