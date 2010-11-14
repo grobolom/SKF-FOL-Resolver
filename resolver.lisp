@@ -8,7 +8,7 @@
 		(format stream "~A~A"
 			(compound-op struct)
 			(compound-args struct)))))
-	     op args)
+	     op &rest args)
 
 (defun m-c (a &rest b)
   (make-compound :op a :args b))
@@ -53,23 +53,42 @@
   (loop
      for stmt in KB
      for i from 1
-       collect (var-replace stmt i)))
+     collect (var-replace stmt i)))
 
 (defun var-replace (stmt i)
-  (print "====REPLACE====")(print stmt)
   (cond ((compound-p stmt)
-	 (print "COMPOUND-P")(m-c (compound-op stmt) (car (var-replace (compound-args stmt) i))))
+	 (make-compound :op (compound-op stmt) :args (var-replace (compound-args stmt) i)))
 	((null stmt) nil)
 	((list1p stmt)
-	 (print "LIST1P")(cons (var-replace (car stmt) i) nil))
+	 (cons (var-replace (car stmt) i) nil))
 	((listp stmt)
-	 (print "LISTP")(cons (var-replace (car stmt) i) (var-replace (cdr stmt) i)))
+	 (cons (var-replace (car stmt) i) (var-replace (cdr stmt) i)))
 	((var? stmt)
-	 (print "VAR?")(intern (concatenate 'string (string stmt)(write-to-string i))))
+	 (intern (concatenate 'string (string stmt)(write-to-string i))))
 	(t stmt)))
 
-(defun list1p (e)
-  (when (and (listp e)(null (cdr e))) t))
+(defun v-replace (stmt i)
+  (loop
+     for x in (diff-vars-in stmt)
+     for y in (replaced-vars (diff-vars-in stmt) i)
+     collect (subst x y stmt)))
+
+(defun replaced-vars (stmt i)
+  (loop
+     for elt in stmt
+     collect (intern (concatenate 'string (string elt)(write-to-string i)))))
+
+(defun diff-vars-in (stmt)
+  (remove-duplicates (find-vars stmt)))
+
+(defun find-vars (stmt)
+  (cond ((compound-p stmt)
+	 (append (find-vars (compound-args stmt)) (find-vars (compound-op stmt))))
+	((null stmt) nil)
+	((listp stmt)
+	 (append (find-vars (cdr stmt)) (find-vars (car stmt))))
+	((var? stmt) (list stmt))
+	(t nil)))
 
 ; (setf A (list (m-c 'Animal (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
 ; (setf B (list (m-c 'Loves '?x (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
@@ -78,3 +97,5 @@
 ; (setf E (list (m-c 'Kills 'Jack 'Tuna) (m-c 'Kills 'Curiosity 'Tuna)))
 ; (setf F (list (m-c 'Cat 'Tuna)))
 ; (setf G (list (m-c 'Cat '?x) (m-c 'Animal '?x)))
+
+; (setf A (list '(.Animal (F (?x))) '(.Loves(.G(?x) ?x))))
