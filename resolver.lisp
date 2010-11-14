@@ -13,16 +13,17 @@
 (defun m-c (a &rest b)
   (make-compound :op a :args b))
 
-;(defun unify-clauses (x y)
-;  (let ((opx (string (compound-op x)))
-;	(opy (string (compound-op y)))
-;	(opcx (char (string (compound-op x)) 0))
-;	(opcy (char (string (compound-op y)) 0)))
-;    (cond ((and (eql opcx '#\!)(eql (subseq opx 1) opy))
-;	   (unify ()
-;	  (and (eql opcy '#\!)(eql (subseq opy 1) opx)))
-;	(unify ()
-    
+(defun unify-clauses (x y)
+  (let ((opx (string (compound-op x)))
+	(opy (string (compound-op y)))
+	(opcx (char (string (compound-op x)) 0))
+	(opcy (char (string (compound-op y)) 0)))
+    (print opx)(print opy)(print opcx)(print opcy)
+    (cond ((and (eql opcx '#\!)(equal (subseq opx 1) opy))
+	   (unify (make-compound :op (intern (subseq opx 1)) :args (compound-args x)) y))
+	  ((and (eql opcy '#\!)(equal (subseq opy 1) opx))
+	   (unify x (make-compound :op (intern (subseq opy 1)) :args (compound-args y))))
+	  (t 'failure))))    
 
 (defun unify (x y &optional +theta+)
   (cond ((eq +theta+ 'failure) 'failure)
@@ -90,7 +91,7 @@
 
 ; (setf KB (list a b c d e f g))
 
-; (setf SAB (list (m-c 'Loves '?x2 (m-c 'F '?x2)) (m-c 'Loves (m-c 'G '?x2) '?x2)))
-; (setf SAD (list (m-c 'Animal '?x4) (m-c 'Loves 'Jack '?x4)))
+; (setf SAB (list (m-c '!Loves '?x2 (m-c 'F '?x2)) (m-c 'Loves (m-c 'G '?x2) '?x2)))
+; (setf SAD (list (m-c '!Animal '?x4) (m-c 'Loves 'Jack '?x4)))
 
 ; (setf A (list '(.Animal (F (?x))) '(.Loves(.G(?x) ?x))))
