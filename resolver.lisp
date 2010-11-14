@@ -67,29 +67,6 @@
 	 (intern (concatenate 'string (string stmt)(write-to-string i))))
 	(t stmt)))
 
-(defun v-replace (stmt i)
-  (loop
-     for x in (diff-vars-in stmt)
-     for y in (replaced-vars (diff-vars-in stmt) i)
-     collect (subst x y stmt)))
-
-(defun replaced-vars (stmt i)
-  (loop
-     for elt in stmt
-     collect (intern (concatenate 'string (string elt)(write-to-string i)))))
-
-(defun diff-vars-in (stmt)
-  (remove-duplicates (find-vars stmt)))
-
-(defun find-vars (stmt)
-  (cond ((compound-p stmt)
-	 (append (find-vars (compound-args stmt)) (find-vars (compound-op stmt))))
-	((null stmt) nil)
-	((listp stmt)
-	 (append (find-vars (cdr stmt)) (find-vars (car stmt))))
-	((var? stmt) (list stmt))
-	(t nil)))
-
 ; (setf A (list (m-c 'Animal (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
 ; (setf B (list (m-c 'Loves '?x (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
 ; (setf C (list (m-c 'Loves '?y '?x) (m-c 'Animal '?z) (m-c 'Kills '?x '?z)))
