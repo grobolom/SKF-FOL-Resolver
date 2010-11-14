@@ -13,12 +13,24 @@
 (defun m-c (a &rest b)
   (make-compound :op a :args b))
 
-(defun unify (x y +theta+)
+;(defun unify-clauses (x y)
+;  (let ((opx (string (compound-op x)))
+;	(opy (string (compound-op y)))
+;	(opcx (char (string (compound-op x)) 0))
+;	(opcy (char (string (compound-op y)) 0)))
+;    (cond ((and (eql opcx '#\!)(eql (subseq opx 1) opy))
+;	   (unify ()
+;	  (and (eql opcy '#\!)(eql (subseq opy 1) opx)))
+;	(unify ()
+    
+
+(defun unify (x y &optional +theta+)
   (cond ((eq +theta+ 'failure) 'failure)
 	((eql x y) +theta+)
 	((var? x) (unify-var x y +theta+))
 	((var? y) (unify-var y x +theta+))
-	((and (compound-p x) (compound-p y))
+	((and (compound-p x)
+	      (compound-p y))
 	 (unify (compound-args x) (compound-args y)
 		(unify (compound-op x) (compound-op y) +theta+)))
 	((and (listp x) (listp y))
@@ -35,7 +47,6 @@
     (when (symbolp a) (eq (char (string a) 0) #\?)))
 
 (defun subs (clause +theta+)
-;  (print "=====SUBS=====")(print clause)(print +theta+)
   (cond ((null clause) nil)
 	((compound-p clause)
 	 (make-compound :op (compound-op clause)
@@ -68,11 +79,18 @@
 	(t stmt)))
 
 ; (setf A (list (m-c 'Animal (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
-; (setf B (list (m-c 'Loves '?x (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
-; (setf C (list (m-c 'Loves '?y '?x) (m-c 'Animal '?z) (m-c 'Kills '?x '?z)))
-; (setf D (list (m-c 'Animal '?x) (m-c 'Loves 'Jack '?x)))
+; (setf B (list (m-c '!Loves '?x (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
+; (setf C (list (m-c '!Loves '?y '?x) (m-c '!Animal '?z) (m-c '!Kills '?x '?z)))
+; (setf D (list (m-c '!Animal '?x) (m-c 'Loves 'Jack '?x)))
 ; (setf E (list (m-c 'Kills 'Jack 'Tuna) (m-c 'Kills 'Curiosity 'Tuna)))
 ; (setf F (list (m-c 'Cat 'Tuna)))
-; (setf G (list (m-c 'Cat '?x) (m-c 'Animal '?x)))
+; (setf G (list (m-c '!Cat '?x) (m-c 'Animal '?x)))
+
+; (setf p (list (m-c '!Kills 'Curiosity 'Tuna)))
+
+; (setf KB (list a b c d e f g))
+
+; (setf SAB (list (m-c 'Loves '?x2 (m-c 'F '?x2)) (m-c 'Loves (m-c 'G '?x2) '?x2)))
+; (setf SAD (list (m-c 'Animal '?x4) (m-c 'Loves 'Jack '?x4)))
 
 ; (setf A (list '(.Animal (F (?x))) '(.Loves(.G(?x) ?x))))
