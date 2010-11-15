@@ -13,20 +13,33 @@
 (defun m-c (a &rest b)
   (make-compound :op a :args b))
 
-(defun test-loop ()
-  (let ((x '(1 2 3 4 5 6 7 8)))
-    (loop
-	 for i in x
-	 do (when (eql i 4)(delete 6 x))
-	 do (print i)
-	 finally (return x))))
+(defun atp (kb a)
+  (let ((skb (sd-apart kb)))
+    (resolve (append skb (list a)) 20)))
+
+(defun resolve (skb depth)
+;  (print "====RESOLVE====")(print depth)(print skb)
+  (let ((node (car skb)) ;current node to try matching
+	(fringe (cdr skb)) ;the rest of the list
+	(next-res (get-next-res (car skb)(cdr skb)))) ;the node to resolve
+;    (print node)(print fringe)(print next-res)(print depth)))
+    (cond ((eql depth 0) nil)
+	  ((not (null next-res))
+	   (resolve (append (remove next-res fringe)
+			    (list (resolve-sentences node next-res))) (1- depth)))
+	  (t (resolve (append fringe (list node)) (1- depth))))))
+
+(defun get-next-res (node fringe)
+  (loop for e in fringe
+     do (when (unify-facts e node) (return e))))
 
 (defun resolve-sentences (x y)
   "resolves two sentences"
+  (print "==RESOLVE-SENTENCES")(print x)(print y)
   (let ((tset (append x y))
 	(sset (unify-facts x y)))
     (loop for e in tset
-	 collect (if (null (unify-facts (list e) tset)) (subs e sset) 'nil) into restt
+	 collect (if (eql (unify-facts (list e) tset) 'failure) (subs e sset) 'nil) into restt
 	 finally (return (remove-if 'null restt)))))
 
 (defun unify-facts (x y)
@@ -116,4 +129,11 @@
 ; (setf SAB (list (m-c '!Loves '?x2 (m-c 'F '?x2)) (m-c 'Loves (m-c 'G '?x2) '?x2)))
 ; (setf SAD (list (m-c '!Animal '?x4) (m-c 'Loves 'Jack '?x4)))
 
-; (setf A (list '(.Animal (F (?x))) '(.Loves(.G(?x) ?x))))
+
+; x / Father(y)
+; y / Father(x)
+; x / Father(Father(x))
+;
+; Loves(x,Father(x)
+; ~Loves(Father(y),y) + Hates(y,Mother(y))
+; Hates(Father(Father(y))
