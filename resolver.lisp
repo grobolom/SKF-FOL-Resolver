@@ -18,11 +18,13 @@
     (resolve (append skb (list a)) 20)))
 
 (defun resolve (skb depth)
-;  (print "====RESOLVE====")(print depth)(print skb)
+;  (format t "~A ~A" "==RESOLVE-SENTENCES==" skb)
+  (print "====RESOLVE====")(print skb)
+  (print " ")
   (let ((node (car skb)) ;current node to try matching
 	(fringe (cdr skb)) ;the rest of the list
 	(next-res (get-next-res (car skb)(cdr skb)))) ;the node to resolve
-;    (print node)(print fringe)(print next-res)(print depth)))
+    (print "HERE")
     (cond ((eql depth 0) nil)
 	  ((not (null next-res))
 	   (resolve (append (remove next-res fringe)
@@ -30,26 +32,31 @@
 	  (t (resolve (append fringe (list node)) (1- depth))))))
 
 (defun get-next-res (node fringe)
+;  (print "====GET-NEXT-RES====")
   (loop for e in fringe
-     do (when (unify-facts e node) (return e))))
+     do (when (unify-facts e node) 'failure (return e))))
 
 (defun resolve-sentences (x y)
   "resolves two sentences"
-  (print "==RESOLVE-SENTENCES")(print x)(print y)
+  (format t "~%~A ~A ~A" "==RESOLVE-SENTENCES==" x y)
   (let ((tset (append x y))
 	(sset (unify-facts x y)))
     (loop for e in tset
-	 collect (if (eql (unify-facts (list e) tset) 'failure) (subs e sset) 'nil) into restt
+	 collect (if (null (unify-facts (list e) tset)) (subs e sset) 'nil) into restt
 	 finally (return (remove-if 'null restt)))))
 
 (defun unify-facts (x y)
   "returns all substitutions for two full facts"
+;  (print "UNIFY-FACTS")(print x)(print y)
   (loop for px in x append
        (loop for py in y append
-	    (if (eql (unify-clauses px py) 'failure) nil (unify-clauses px py)))))
+	    (cond ((eql (unify-clauses px py) 'failure) 'nil)
+		  ((null (unify-clauses px py)) '(+null+))
+		  (t (unify-clauses px py))))))
 
 (defun unify-clauses (x y)
   "returns a substitution for two clauses"
+;  (print "====UNIFY-CLAUSES====")(print x)(print y)
   (let ((opx (string (compound-op x)))
 	(opy (string (compound-op y)))
 	(opcx (char (string (compound-op x)) 0))
@@ -83,18 +90,19 @@
     (when (symbolp a) (eq (char (string a) 0) #\?)))
 
 (defun subs (clause +theta+)
-  (cond ((null clause) nil)
-	((compound-p clause)
-	 (make-compound :op (compound-op clause)
-			:args (subs (compound-args clause) +theta+)))
-	((var? clause)
-	 (let ((sub (cadr (assoc clause +theta+))))
-	   (cond ((and sub (compound-p sub))
-		  (subs sub +theta+))
-		 (sub sub)
-		 (t clause))))
-	((listp clause)(cons (subs (car clause) +theta+) (subs (cdr clause) +theta+)))
-	(t clause)))
+  (cond  ((equal +theta+ '(+NULL+)) nil)
+	 ((null clause) nil)
+	 ((compound-p clause)
+	  (make-compound :op (compound-op clause)
+			 :args (subs (compound-args clause) +theta+)))
+	 ((var? clause)
+	  (let ((sub (cadr (assoc clause +theta+))))
+	    (cond ((and sub (compound-p sub))
+		   (subs sub +theta+))
+		  (sub sub)
+		  (t clause))))
+	 ((listp clause)(cons (subs (car clause) +theta+) (subs (cdr clause) +theta+)))
+	 (t clause)))
 
 (defun sd-apart (KB)
   (loop
@@ -106,13 +114,14 @@
   (cond ((compound-p stmt)
 	 (make-compound :op (compound-op stmt) :args (var-replace (compound-args stmt) i)))
 	((null stmt) nil)
-	((list1p stmt)
-	 (cons (var-replace (car stmt) i) nil))
+;	((list1p stmt)
+;	 (cons (var-replace (car stmt) i) nil))
 	((listp stmt)
 	 (cons (var-replace (car stmt) i) (var-replace (cdr stmt) i)))
 	((var? stmt)
 	 (intern (concatenate 'string (string stmt)(write-to-string i))))
 	(t stmt)))
+
 
 ; (setf A (list (m-c 'Animal (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
 ; (setf B (list (m-c '!Loves '?x (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
