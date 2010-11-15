@@ -13,12 +13,34 @@
 (defun m-c (a &rest b)
   (make-compound :op a :args b))
 
+(defun test-loop ()
+  (let ((x '(1 2 3 4 5 6 7 8)))
+    (loop
+	 for i in x
+	 do (when (eql i 4)(delete 6 x))
+	 do (print i)
+	 finally (return x))))
+
+(defun resolve-sentences (x y)
+  "resolves two sentences"
+  (let ((tset (append x y))
+	(sset (unify-facts x y)))
+    (loop for e in tset
+	 collect (if (null (unify-facts (list e) tset)) (subs e sset) 'nil) into restt
+	 finally (return (remove-if 'null restt)))))
+
+(defun unify-facts (x y)
+  "returns all substitutions for two full facts"
+  (loop for px in x append
+       (loop for py in y append
+	    (if (eql (unify-clauses px py) 'failure) nil (unify-clauses px py)))))
+
 (defun unify-clauses (x y)
+  "returns a substitution for two clauses"
   (let ((opx (string (compound-op x)))
 	(opy (string (compound-op y)))
 	(opcx (char (string (compound-op x)) 0))
 	(opcy (char (string (compound-op y)) 0)))
-    (print opx)(print opy)(print opcx)(print opcy)
     (cond ((and (eql opcx '#\!)(equal (subseq opx 1) opy))
 	   (unify (make-compound :op (intern (subseq opx 1)) :args (compound-args x)) y))
 	  ((and (eql opcy '#\!)(equal (subseq opy 1) opx))
