@@ -10,6 +10,19 @@
 			(compound-args struct)))))
 	     op &rest args)
 
+; defun m-c (a &rest b)
+; defun atp (kb a)
+; defun resolve (skb depth)
+; defun get-next-res (node fringe)
+; defun r-s (x y)
+; defun unify-facts (x y)
+; defun unify-clauses (x y)
+; defun unify (x y &optional +theta+)
+; defun unify-var (var x +theta+)
+; defun subs (clause +theta+)
+; defun sd-apart (KB)
+; defun var-replace (stmt i)
+
 (defun m-c (a &rest b)
   (make-compound :op a :args b))
 
@@ -18,13 +31,13 @@
     (resolve (append skb (list a)) 20)))
 
 (defun resolve (skb depth)
-  (format t "~%~A ~A~%" "==RESOLVE==" skb)
-;  (print "====RESOLVE====")(print skb)
-;  (print " ")
+  (format t "~%~%~A~%~A~%~A~%~A~%~A~%~A~%~A~%~A~%~A"
+	  "==RESOLVE==" (nth 0 skb)(nth 1 skb)
+	  (nth 2 skb) (nth 3 skb) (nth 4 skb)
+	  (nth 5 skb) (nth 6 skb) (nth 7 skb))
   (let ((node (car skb)) ;current node to try matching
 	(fringe (cdr skb)) ;the rest of the list
 	(next-res (get-next-res (car skb)(cdr skb)))) ;the node to resolve
- ;   (print "HERE")
     (cond ((eql depth 0) nil)
 	  ((not (null next-res))
 	   (resolve (append (remove next-res fringe)
@@ -32,26 +45,30 @@
 	  (t (resolve (append fringe (list node)) (1- depth))))))
 
 (defun get-next-res (node fringe)
-;  (print "====GET-NEXT-RES====")
   (loop for e in fringe
      do (when (unify-facts e node) 'failure (return e))))
 
 (defun r-s (x y)
-  (format t "~A~%" "==Resolve-Sentences==")
+;  (format t "~A~%" "==Resolve-Sentences==")
   (let ((tset (append x y))
 	(sset (unify-facts x y)))
     (loop for e in tset
-       do (format t "~A ~A ~A~%" restt (find e x) (find e y))
-       do (format t "~A ~A~%~%" (unify-facts (list e) x) (unify-facts (list e) y))
-       collect (cond ((find e x)(if (eql (unify-facts (list e) y) 'nil) (subs e sset) 'nil))
-	       (t (if (eql (unify-facts (list e) x) 'nil) (subs e sset) 'nil)))
+;       do (format t "~A ~A ~A~%" restt (find e x) (find e y))
+;       do (format t "~A ~A~%~%" (unify-facts (list e) x) (unify-facts (list e) y))
+       collect (cond ((find e x)
+		      (cond ((eql (unify-facts (list e) y) '(+NULL+)) 'nil)
+			    ((eql (unify-facts (list e) y) 'nil) (subs e sset))
+			    (t 'nil)))
+		     ((find e y)
+		      (cond ((eql (unify-facts (list e) x) '(+NULL+)) 'nil)
+			    ((eql (unify-facts (list e) x) 'nil) (subs e sset))
+			    (t 'nil))))
        into restt
        finally (return (remove-if 'null restt)))))
 	 
 
 (defun unify-facts (x y)
   "returns all substitutions for two full facts"
-;  (print "UNIFY-FACTS")(print x)(print y)
   (loop for px in x append
        (loop for py in y append
 	    (cond ((eql (unify-clauses px py) 'failure) 'nil)
@@ -59,8 +76,6 @@
 		  (t (unify-clauses px py))))))
 
 (defun unify-clauses (x y)
-  "returns a substitution for two clauses"
-;  (print "====UNIFY-CLAUSES====")(print x)(print y)
   (let ((opx (string (compound-op x)))
 	(opy (string (compound-op y)))
 	(opcx (char (string (compound-op x)) 0))
@@ -94,8 +109,7 @@
     (when (symbolp a) (eq (char (string a) 0) #\?)))
 
 (defun subs (clause +theta+)
-  (cond  ((equal +theta+ '(+NULL+)) nil)
-	 ((null clause) nil)
+  (cond  ((null clause) nil)
 	 ((compound-p clause)
 	  (make-compound :op (compound-op clause)
 			 :args (subs (compound-args clause) +theta+)))
@@ -118,8 +132,6 @@
   (cond ((compound-p stmt)
 	 (make-compound :op (compound-op stmt) :args (var-replace (compound-args stmt) i)))
 	((null stmt) nil)
-;	((list1p stmt)
-;	 (cons (var-replace (car stmt) i) nil))
 	((listp stmt)
 	 (cons (var-replace (car stmt) i) (var-replace (cdr stmt) i)))
 	((var? stmt)
@@ -142,6 +154,11 @@
 ; (setf SAB (list (m-c '!Loves '?x2 (m-c 'F '?x2)) (m-c 'Loves (m-c 'G '?x2) '?x2)))
 ; (setf SAD (list (m-c '!Animal '?x4) (m-c 'Loves 'Jack '?x4)))
 
+; (setf A1 (list (m-c '!LOVES '?Y3 '?X3) (m-c '!KILLS '?X3 'TUNA)))
+; (setf A2 (list (m-c 'KILLS 'JACK 'TUNA) (m-c 'KILLS 'CURIOSITY 'TUNA)))
+
+; (setf B1 (list (m-c 'Animal (m-c 'F '?X7)) (m-c 'Loves (m-c 'G '?x7) '?x7)))
+; (setf B2 (list (m-c '!Loves '?y8 '?x8) (m-c '!Animal '?z8) (m-c '!kills '?x8 '?z8)))
 
 ; x / Father(y)
 ; y / Father(x)
