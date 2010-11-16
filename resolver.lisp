@@ -18,13 +18,13 @@
     (resolve (append skb (list a)) 20)))
 
 (defun resolve (skb depth)
-;  (format t "~A ~A" "==RESOLVE-SENTENCES==" skb)
-  (print "====RESOLVE====")(print skb)
-  (print " ")
+;  (format t "~A ~A~%" "==RESOLVE==" skb)
+;  (print "====RESOLVE====")(print skb)
+;  (print " ")
   (let ((node (car skb)) ;current node to try matching
 	(fringe (cdr skb)) ;the rest of the list
 	(next-res (get-next-res (car skb)(cdr skb)))) ;the node to resolve
-    (print "HERE")
+ ;   (print "HERE")
     (cond ((eql depth 0) nil)
 	  ((not (null next-res))
 	   (resolve (append (remove next-res fringe)
@@ -42,12 +42,15 @@
   (let ((tset (append x y))
 	(sset (unify-facts x y)))
     (loop for e in tset
-	 collect (if (null (unify-facts (list e) tset)) (subs e sset) 'nil) into restt
-	 finally (return (remove-if 'null restt)))))
+       collect (if (null (unify-facts (list e) tset))
+		   (subs e sset)
+		   'nil)
+       into restt
+       finally (return (remove-if 'null restt)))))
 
 (defun unify-facts (x y)
   "returns all substitutions for two full facts"
-;  (print "UNIFY-FACTS")(print x)(print y)
+  (print "UNIFY-FACTS")(print x)(print y)
   (loop for px in x append
        (loop for py in y append
 	    (cond ((eql (unify-clauses px py) 'failure) 'nil)
@@ -56,7 +59,7 @@
 
 (defun unify-clauses (x y)
   "returns a substitution for two clauses"
-;  (print "====UNIFY-CLAUSES====")(print x)(print y)
+  (print "====UNIFY-CLAUSES====")(print x)(print y)
   (let ((opx (string (compound-op x)))
 	(opy (string (compound-op y)))
 	(opcx (char (string (compound-op x)) 0))
@@ -123,17 +126,17 @@
 	(t stmt)))
 
 
-; (setf A (list (m-c 'Animal (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
-; (setf B (list (m-c '!Loves '?x (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
-; (setf C (list (m-c '!Loves '?y '?x) (m-c '!Animal '?z) (m-c '!Kills '?x '?z)))
-; (setf D (list (m-c '!Animal '?x) (m-c 'Loves 'Jack '?x)))
-; (setf E (list (m-c 'Kills 'Jack 'Tuna) (m-c 'Kills 'Curiosity 'Tuna)))
-; (setf F (list (m-c 'Cat 'Tuna)))
-; (setf G (list (m-c '!Cat '?x) (m-c 'Animal '?x)))
+ ;(setf A (list (m-c 'Animal (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
+ ;(setf B (list (m-c '!Loves '?x (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
+ ;(setf C (list (m-c '!Loves '?y '?x) (m-c '!Animal '?z) (m-c '!Kills '?x '?z)))
+ ;(setf D (list (m-c '!Animal '?x) (m-c 'Loves 'Jack '?x)))
+ ;(setf E (list (m-c 'Kills 'Jack 'Tuna) (m-c 'Kills 'Curiosity 'Tuna)))
+ ;(setf F (list (m-c 'Cat 'Tuna)))
+ ;(setf G (list (m-c '!Cat '?x) (m-c 'Animal '?x)))
 
-; (setf p (list (m-c '!Kills 'Curiosity 'Tuna)))
+ ;(setf p (list (m-c '!Kills 'Curiosity 'Tuna)))
 
-; (setf KB (list a b c d e f g))
+ ;(setf KB (list k g e p b d a c))
 
 ; (setf SAB (list (m-c '!Loves '?x2 (m-c 'F '?x2)) (m-c 'Loves (m-c 'G '?x2) '?x2)))
 ; (setf SAD (list (m-c '!Animal '?x4) (m-c 'Loves 'Jack '?x4)))
