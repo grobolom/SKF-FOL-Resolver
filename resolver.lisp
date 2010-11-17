@@ -40,41 +40,61 @@
 	(next-res (get-next-res (car skb)(cdr skb)))) ;the node to resolve
     (cond ((eql depth 0) nil)
 	  ((not (null next-res))
-	   (resolve (append (list (r-s node next-res))
-			    (remove next-res fringe)) (1- depth)))
+	   (resolve (append (remove next-res fringe)
+			    (list (r-s node next-res))) (1- depth)))
 	  (t (resolve (append fringe (list node)) (1- depth))))))
+
+(defun reslv (nres &optional pres depth)
+  (let ((node (car (append nres pres)))
+;	(fringe (append pres nres))
+	(nextr (get-next-res (car (append nres pres))
+			     (cdr (append pres nres)))))
+;    (print (last pres))(print "=Reslv")(print node)(print nextr)
+    (format t "~%~A~%~A~%~A~%~%~A~%~%~A~%"
+	    "=Resolve" node nextr nres pres)
+    (cond ((eql depth 0) nil)
+	  ((not (null nextr))
+	   (reslv (remove nextr (cdr nres))
+		  (append (remove node pres) (list (r-s node nextr)))
+		  (1- depth)))
+	  (t
+	   (reslv (cdr nres)
+		  (append (cdr pres) (list (car pres)))
+		  (1- depth))))))
 
 (defun get-next-res (node fringe)
   (loop for e in fringe
-     do (when (unify-facts e node) 'failure (return e))))
+     do (unless (equal (unify-facts e node) 'failure)(return e))))
+
+;(defun r-s (x y)
+;  (format t "~%~A~%" "==Resolve-Sentences==")
+;  (let ((tset (append x y))
+;	(sset (unify-facts x y)))
+;    (loop for e in tset
+;       do (format t "~%~%~A ~A ~A" restt (find e x) (find e y))
+;       do (format t "~%~A ~A" (unify-facts (list e) x) (unify-facts (list e) y))
+;       collect (cond ((find e x)
+;		      (cond ((eql (unify-facts (list e) y) '(+NULL+)) 'nil)
+;			    ((eql (unify-facts (list e) y) 'nil) (subs e sset))
+;			    (t 'nil)))
+;		     ((find e y)
+;		      (cond ((eql (unify-facts (list e) x) '(+NULL+)) 'nil)
+;			    ((eql (unify-facts (list e) x) 'nil) (subs e sset))
+;			    (t 'nil))))
+;       into restt
+;       finally (return (remove-if 'null restt)))))
 
 (defun r-s (x y)
-  (format t "~%~A~%" "==Resolve-Sentences==")
-  (let ((tset (append x y))
-	(sset (unify-facts x y)))
-    (loop for e in tset
-       do (format t "~%~%~A ~A ~A" restt (find e x) (find e y))
-       do (format t "~%~A ~A" (unify-facts (list e) x) (unify-facts (list e) y))
-       collect (cond ((find e x)
-		      (cond ((eql (unify-facts (list e) y) '(+NULL+)) 'nil)
-			    ((eql (unify-facts (list e) y) 'nil) (subs e sset))
-			    (t 'nil)))
-		     ((find e y)
-		      (cond ((eql (unify-facts (list e) x) '(+NULL+)) 'nil)
-			    ((eql (unify-facts (list e) x) 'nil) (subs e sset))
-			    (t 'nil))))
-       into restt
-       finally (return (remove-if 'null restt)))))
+;  (format t "~%=R-S=~%~A ~A" x y)
+  (subs (r+s x y)(unify-facts x y)))
 	 
 (defun r+s (x y)
-  (print "R+S")
   (loop for px in x append
        (uni-nf px y)
      into unified
-     finally (print unified)(return (uni-rem unified (append x y)))))
+     finally (return (uni-rem unified (append x y)))))
 
 (defun uni-rem (unified lst)
-  (print "Uni-Rem")
   (loop for l in lst append
        (if (find l unified) nil (list l))))
 
@@ -84,21 +104,28 @@
 	  (return (append (list n)(list pf))))))
 
 (defun unify-facts (x y)
+  (let ((u (unify-f x y)))
+    (if (null u) 'failure u)))
+
+(defun unify-f (x y)
   "returns all substitutions for two full facts"
   (loop for px in x append
        (loop for py in y append
 	    (cond ((eql (unify-clauses px py) 'failure) 'nil)
-		  ((null (unify-clauses px py)) '(+null+))
+		  ((eql (unify-clauses px py) 'nil) (list '(+N+)))
 		  (t (unify-clauses px py))))
      into app
      finally (return (remove-dupes app))))
 
 (defun remove-dupes (x)
   (loop for px in x append
-       (cond ((assoc (car px) app) nil)
+       (cond ((null px) nil)
+	     ((eql px 'failure)
+	      (if (find px app) nil 'failure))
+	     ((assoc (car px) app) nil)
 	     (t (list px)))
-       into app
-       finally (return app)))
+     into app
+     finally (return app)))
 
 (defun unify-clauses (x y)
   (let ((opx (string (compound-op x)))
@@ -188,7 +215,7 @@
 
 ; (setf p (list (m-c '!Kills 'Curiosity 'Tuna)))
 
-; (setf KB (list f g c e p b d a))
+; (setf KB (list f g e p b d a c))
 
 ; (setf SAB (list (m-c '!Loves '?x2 (m-c 'F '?x2)) (m-c 'Loves (m-c 'G '?x2) '?x2)))
 ; (setf SAD (list (m-c '!Animal '?x4) (m-c 'Loves 'Jack '?x4)))
