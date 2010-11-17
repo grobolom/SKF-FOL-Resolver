@@ -103,10 +103,21 @@
 (defun unify-var (var x +theta+)
   (cond ((assoc var +theta+) (unify (cadr (assoc var +theta+)) x +theta+))
 	((assoc x +theta+) (unify var (cadr (assoc x +theta+)) +theta+))
+	((occurs? var x +theta+) 'failure)
 	(t (cons (list var x) +theta+))))
 
 (defun var? (a)
     (when (symbolp a) (eq (char (string a) 0) #\?)))
+
+(defun occurs? (var x +theta+)
+  (cond ((eq var x) t)
+	((and (var? x)
+	      (assoc x +theta+))
+	 (occurs? var (cadr (assoc x +theta+)) +theta+))
+	((compound-p x) (occurs? var (compound-args x) +theta+))
+	((listp x) (or (occurs? var (car x) +theta+)
+		       (occurs? var (cdr x) +theta+)))
+	(t nil)))
 
 (defun subs (clause +theta+)
   (cond  ((null clause) nil)
@@ -137,7 +148,6 @@
 	((var? stmt)
 	 (intern (concatenate 'string (string stmt)(write-to-string i))))
 	(t stmt)))
-
 
 ; (setf A (list (m-c 'Animal (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
 ; (setf B (list (m-c '!Loves '?x (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
