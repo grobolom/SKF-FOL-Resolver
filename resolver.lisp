@@ -1,5 +1,3 @@
-;; Defining some basic types : an atomic sentence, and what it is built of
-
 (defstruct (compound
 	     ;(:conc-name nil)
 	     (:print-function
@@ -10,36 +8,30 @@
 			(compound-args struct)))))
   op &rest args)
 
-;(defstruct compound op args)
-
 (defun m-c (a &rest b)
   (make-compound :op a :args b))
 
 (defun atp (kb a)
   (let ((skb (sd-apart kb)))
-    (resolve (append skb (list a)) 20)))
+    (reslv skb (list a))))
 
-(defun reslv (nres &optional pres depth)
-  (let ((node (car (last pres)))
-	(nextr (get-next-res (car (last pres)) (append nres pres))))
-    (format t "~%~A~%~A~%~A~%~%~A~%~%~A~%"
-	    "=Resolve" node nextr nres pres) 
-    (cond ((eql depth 0) nil)
-	  ((not (null nextr))
+(defun reslv (nres pres)
+  (let ((node (car pres))
+	(nextr (get-next-res (car pres) (append nres pres))))
+    (format t "~%~%~A~%~A" node nextr)
+    (cond ((not (null nextr))
 	   (reslv (sort (append nres pres) #'(lambda (x y) (< (list-length x) (list-length y))))
-		  (list (r-s node nextr))
-		  (1- depth)))
-	  (t (print "BALLS")
-	   (reslv nres
-		  (append (cdr pres)(list (car pres)))
-		  (1- depth))))))
+		  (list (r-s node nextr))))
+	  ((null node) 'DONE)
+	  (t
+	   (reslv (cdr (append nres pres))
+		  (car nres))))))
 
 (defun get-next-res (node fringe)
   (loop for e in fringe
      do (unless (equal (unify-facts e node) 'failure)(return e))))
 
 (defun r-s (x y)
-;  (format t "~%=R-S=~%~A ~A" x y)
   (subs (r+s x y)(unify-facts x y)))
 	 
 (defun r+s (x y)
@@ -108,40 +100,32 @@
 	(t 'failure)))
 
 (defun unify-var (var x +theta+)
-;  (format t "~%~A  ~A  ~A  {~A}" "    UNIFY-VAR" var x +theta+)
-  (cond ((assoc var +theta+) (unify (cadr (assoc var +theta+)) x +theta+))
-	((assoc x +theta+) (unify var (cadr (assoc x +theta+)) +theta+))
-	((occurs? var x +theta+) 'failure)
-	(t (cons (list var x) +theta+))))
+  (let ((xsub (subs x +theta+)))
+    (cond ((assoc var +theta+) (unify (cadr (assoc var +theta+)) x +theta+))
+	  ((assoc x +theta+) (unify var (cadr (assoc x +theta+)) +theta+))
+	  ((occurs? var xsub) 'failure)
+	  (t (cons (list var xsub) +theta+)))))
 
 (defun var? (a)
     (when (symbolp a) (eq (char (string a) 0) #\?)))
 
-(defun occurs? (var x +theta+)
-;  (format t "~&~A" "        OCCURS")
+(defun occurs? (var x)
   (cond ((equal var x) t)
 	((or (null x)(null var)) nil)
-	((and (var? x)
-	      (assoc x +theta+))
-	 (occurs? var (cadr (assoc x +theta+)) +theta+))
-	((compound-p x) (occurs? var (compound-args x) +theta+))
-	((listp x) (or (occurs? var (car x) +theta+)
-		       (occurs? var (cdr x) +theta+)))
+	((compound-p x) (occurs? var (compound-args x)))
+	((listp x) (or (occurs? var (car x))
+		       (occurs? var (cdr x))))
 	(t nil)))
 
 (defun subs (clause +theta+)
-  (cond  ((null clause) nil)
-	 ((compound-p clause)
-	  (make-compound :op (compound-op clause)
-			 :args (subs (compound-args clause) +theta+)))
-	 ((var? clause)
-	  (let ((sub (cadr (assoc clause +theta+))))
-	    (cond ((and sub (compound-p sub))
-		   (subs sub +theta+))
-		  (sub sub)
-		  (t clause))))
-	 ((listp clause)(cons (subs (car clause) +theta+) (subs (cdr clause) +theta+)))
-	 (t clause)))
+  (let ((vsub (cadr (assoc clause +theta+))))
+    (cond  ((null clause) nil)
+	   ((compound-p clause)
+	    (make-compound :op (compound-op clause)
+			   :args (subs (compound-args clause) +theta+)))
+	   ((var? clause)(if (null vsub) clause vsub))
+	   ((listp clause)(cons (subs (car clause) +theta+) (subs (cdr clause) +theta+)))
+	   (t clause))))
 
 (defun sd-apart (KB)
   (loop
@@ -169,23 +153,5 @@
 
 ; (setf p (list (m-c '!Kills 'Curiosity 'Tuna)))
 
-; (setf KB (list f g e p b d a c))
+; (setf KB (list f g e b d a c))
 ; (setf skb (sd-apart kb))
-
-; (setf SAB (list (m-c '!Loves '?x2 (m-c 'F '?x2)) (m-c 'Loves (m-c 'G '?x2) '?x2)))
-; (setf SAD (list (m-c '!Animal '?x4) (m-c 'Loves 'Jack '?x4)))
-
-; (setf A1 (list (m-c '!LOVES '?Y3 '?X3) (m-c '!KILLS '?X3 'TUNA)))
-; (setf A2 (list (m-c 'KILLS 'JACK 'TUNA) (m-c 'KILLS 'CURIOSITY 'TUNA)))
-; (setf A3 (list (m-c '!KILLS 'CURIOSITY 'TUNA)))
-
-; (setf B1 (list (m-c 'Animal (m-c 'F '?X7)) (m-c 'Loves (m-c 'G '?x7) '?x7)))
-; (setf B2 (list (m-c '!Loves '?y8 '?x8) (m-c '!Animal '?z8) (m-c '!kills '?x8 '?z8)))
-
-; x / Father(y)
-; y / Father(x)
-; x / Father(Father(x))
-;
-; Loves(x,Father(x)
-; ~Loves(Father(y),y) + Hates(y,Mother(y))
-; Hates(Father(Father(y))
