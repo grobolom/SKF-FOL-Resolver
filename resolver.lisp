@@ -155,3 +155,83 @@
 
 ; (setf KB (list f g e b d a c))
 ; (setf skb (sd-apart kb))
+
+(defparameter *tuna-kb*
+  (list
+   (list (m-c 'Animal (m-c 'F '?x))
+	 (m-c 'Loves (m-c 'G '?x) '?x))
+   (list (m-c '!Loves '?x (m-c 'F '?x))
+	 (m-c 'Loves (m-c 'G '?x) '?x))
+   (list (m-c '!Loves '?y '?x)
+	 (m-c '!Animal '?z)
+	 (m-c '!Kills '?x '?z))
+   (list (m-c '!Animal '?x)
+	 (m-c 'Loves 'Jack '?x))
+   (list (m-c 'Kills 'Jack 'Tuna)
+	 (m-c 'Kills 'Curiosity 'Tuna))
+   (list (m-c 'Cat 'Tuna))
+   (list (m-c '!Cat '?x)
+	 (m-c 'Animal '?x))))
+
+(defparameter *tuna-query*
+   (list (m-c '!Kills 'Curiosity 'Tuna)))
+
+(defparameter *west-kb*
+  (list
+   (list (m-c '!American '?x)
+	 (m-c '!Weapon '?y)
+	 (m-c '!Sells '?x '?y '?z)
+	 (m-c '!Hostile '?z)
+	 (m-c 'Criminal '?x))
+   (list (m-c '!Missle '?x)
+	 (m-c '!Owns 'Nono '?x)
+	 (m-c 'Sells 'West '?x 'Nono))
+   (list (m-c '!Enemy '?x 'America)
+	 (m-c 'Hostile '?x))
+   (list (m-c '!Missle '?x)
+	 (m-c 'Weapon '?x))
+   (list (m-c 'Owns 'Nono 'M1))
+   (list (m-c 'Missle 'M1))
+   (list (m-c 'American 'West))
+   (list (m-c 'Enemy 'Nono 'America))))
+
+(defparameter *west-query*
+  (list (m-c '!Criminal 'West)))
+
+(defparameter *smuggler-kb*
+  (list
+   (list (m-c '!E '?x)
+	 (m-c 'V '?x)
+	 (m-c 'S '?x (m-c 'F '?x)))
+   (list (m-c '!E '?x)
+	 (m-c 'V '?x)
+	 (m-c 'C (m-c 'F '?x)))
+   (list (m-c 'P 'C))
+   (list (m-c 'E 'C))
+   (list (m-c '!S 'C '?y)
+	 (m-c 'P '?y))
+   (list (m-c '!P '?z)
+	 (m-c '!V '?z))))
+
+(defparameter *smuggler-query*
+  (list (m-c '!P '?w)
+	(m-c '!C '?w)))
+
+(defparameter *coral-club-kb*
+  (list
+   (list (m-c 'WS '?x)
+	 (m-c 'SD '?x))
+   (list (m-c '!SD '?y)
+	 (m-c '!Likes '?y 'Waves))
+   (list (m-c '!WS '?z)
+	 (m-c 'Likes '?z 'Warm))
+   (list (m-c '!Likes 'Laura '?w)
+	 (m-c '!Likes 'Jacob '?w))
+   (list (m-c 'Likes 'Jacob '?w)
+	 (m-c 'Likes 'Laura '?w))
+   (list (m-c 'Likes 'Jacob 'Warm))
+   (list (m-c 'Likes 'Jacob 'Waves))))
+
+(defparameter *coral-club-query*
+  (list (m-c '!SD '?v)
+	(m-c 'WS '?v)))
