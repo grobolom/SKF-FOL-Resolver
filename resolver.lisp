@@ -1,21 +1,23 @@
-(defstruct (compound
-	     ;(:conc-name nil)
-	     (:print-function
-	      (lambda (struct stream depth)
-		(declare (ignore depth))
-		(format stream "~A~A"
-			(compound-op struct)
-			(compound-args struct)))))
+(defstruct
+    (compound
+      (:print-function
+       (lambda (struct stream depth)
+	 (declare (ignore depth))
+	 (format stream "~A~A"
+		 (compound-op struct)
+		 (compound-args struct)))))
   op &rest args)
 
 (defun m-c (a &rest b)
+  "compound literal quick-make"
   (make-compound :op a :args b))
 
 (defun atp (kb a)
-  (let ((skb (sd-apart kb)))
-    (reslv skb (list a))))
+  "calls the resolve function"
+  (reslv kb (list a)))
 
 (defun reslv (nres pres)
+  "main resolution loop, including unit preference/linear resolution"
   (let ((node (car pres))
 	(nextr (get-next-res (car pres) (append nres pres))))
     (format t "~%~%~A~%~A" node nextr)
@@ -23,18 +25,22 @@
 	   (reslv (sort (append nres pres) #'(lambda (x y) (< (list-length x) (list-length y))))
 		  (list (r-s node nextr))))
 	  ((null node) 'DONE)
-	  (t
-	   (reslv (cdr (append nres pres))
-		  (car nres))))))
+	  (t "No Resolution"))))
+;	   (reslv (cdr (append nres pres))
+;		  (car nres))))))
 
 (defun get-next-res (node fringe)
+  "grabs the next clause to resolve against"
   (loop for e in fringe
      do (unless (equal (unify-facts e node) 'failure)(return e))))
 
 (defun r-s (x y)
-  (subs (r+s x y)(unify-facts x y)))
+  "resolves two full clauses"
+  (let ((sy (standardize y)))
+    (subs (r+s x sy)(unify-facts x sy))))
 	 
 (defun r+s (x y)
+  "loops through clauses to and unifies"
   (loop for px in x append
        (uni-nf px y)
      into unified
@@ -64,6 +70,7 @@
      finally (return (remove-dupes app))))
 
 (defun remove-dupes (x)
+  "remove duplicates literals from x"
   (loop for px in x append
        (cond ((null px) nil)
 	     ((eql px 'failure)
@@ -74,6 +81,7 @@
      finally (return app)))
 
 (defun unify-clauses (x y)
+  "unifies two literals but only if one is opposite of the first"
   (let ((opx (string (compound-op x)))
 	(opy (string (compound-op y)))
 	(opcx (char (string (compound-op x)) 0))
@@ -85,7 +93,7 @@
 	  (t 'failure))))    
 
 (defun unify (x y &optional +theta+)
-;  (format t "~%~A  ~A  ~A  {~A}" "UNIFY" x y +theta+)
+  "unifies two literals"
   (cond ((eq +theta+ 'failure) 'failure)
 	((eql x y) +theta+)
 	((var? x) (unify-var x y +theta+))
@@ -100,6 +108,7 @@
 	(t 'failure)))
 
 (defun unify-var (var x +theta+)
+  "unify variables"
   (let ((xsub (subs x +theta+)))
     (cond ((assoc var +theta+) (unify (cadr (assoc var +theta+)) x +theta+))
 	  ((assoc x +theta+) (unify var (cadr (assoc x +theta+)) +theta+))
@@ -107,9 +116,11 @@
 	  (t (cons (list var xsub) +theta+)))))
 
 (defun var? (a)
-    (when (symbolp a) (eq (char (string a) 0) #\?)))
+  "checks if this is a variable"
+  (when (symbolp a) (eq (char (string a) 0) #\?)))
 
 (defun occurs? (var x)
+  "check if var occurs in x"
   (cond ((equal var x) t)
 	((or (null x)(null var)) nil)
 	((compound-p x) (occurs? var (compound-args x)))
@@ -118,6 +129,7 @@
 	(t nil)))
 
 (defun subs (clause +theta+)
+  "substitute theta into clause"
   (let ((vsub (cadr (assoc clause +theta+))))
     (cond  ((null clause) nil)
 	   ((compound-p clause)
@@ -127,13 +139,15 @@
 	   ((listp clause)(cons (subs (car clause) +theta+) (subs (cdr clause) +theta+)))
 	   (t clause))))
 
-(defun sd-apart (KB)
-  (loop
-     for stmt in KB
-     for i from 1
-     collect (var-replace stmt i)))
+(defparameter *current-sd* 1)
+
+(defun standardize (clause)
+  "standardize-apart a clause"
+  (setf *current-sd* (1+ *current-sd*))
+  (var-replace clause *current-sd*))
 
 (defun var-replace (stmt i)
+  "replace variables for standardization"
   (cond ((compound-p stmt)
 	 (make-compound :op (compound-op stmt) :args (var-replace (compound-args stmt) i)))
 	((null stmt) nil)
@@ -143,18 +157,7 @@
 	 (intern (concatenate 'string (string stmt)(write-to-string i))))
 	(t stmt)))
 
-; (setf A (list (m-c 'Animal (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
-; (setf B (list (m-c '!Loves '?x (m-c 'F '?x)) (m-c 'Loves (m-c 'G '?x) '?x)))
-; (setf C (list (m-c '!Loves '?y '?x) (m-c '!Animal '?z) (m-c '!Kills '?x '?z)))
-; (setf D (list (m-c '!Animal '?x) (m-c 'Loves 'Jack '?x)))
-; (setf E (list (m-c 'Kills 'Jack 'Tuna) (m-c 'Kills 'Curiosity 'Tuna)))
-; (setf F (list (m-c 'Cat 'Tuna)))
-; (setf G (list (m-c '!Cat '?x) (m-c 'Animal '?x)))
-
-; (setf p (list (m-c '!Kills 'Curiosity 'Tuna)))
-
-; (setf KB (list f g e b d a c))
-; (setf skb (sd-apart kb))
+;;;follows: the knowledge bases
 
 (defparameter *tuna-kb*
   (list
