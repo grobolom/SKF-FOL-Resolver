@@ -41,6 +41,14 @@ The same goes for the AND symbol in unification.
 Clauses with multiple literals are simply lists of compound
 structs, as given in the above example.
 
+Knowledge bases are implemented as lists of lists. The external
+list contains a list for each full clause in the KB. The internal
+lists contain literals built from using the (make-compound ...)
+or (m-c ...).
+
+The negated query sohuld be just a single list containing one or
+more literals, as above.
+
 The automated theorem prover also implements unit preference and
 linear input resolution. This helps in two ways:
 
