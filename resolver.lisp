@@ -1,4 +1,5 @@
 (defstruct
+    ;the representation for literals
     (compound
       (:print-function
        (lambda (struct stream depth)
@@ -20,11 +21,12 @@
   "main resolution loop, including unit preference/linear resolution"
   (let ((node (car pres))
 	(nextr (get-next-res (car pres) (append nres pres))))
-    (format t "~%~%~A~%~A" node nextr)
+;    (format t "~%~%~A~%~A" node nextr)
     (cond ((not (null nextr))
+	   (list node nextr 
 	   (reslv (sort (append nres pres) #'(lambda (x y) (< (list-length x) (list-length y))))
-		  (list (r-s node nextr))))
-	  ((null node) 'DONE)
+		  (list (r-s node nextr)))))
+	  ((null node) 'CONTRADICTION)
 	  (t "No Resolution"))))
 ;	   (reslv (cdr (append nres pres))
 ;		  (car nres))))))
@@ -158,6 +160,10 @@
 	(t stmt)))
 
 ;;;follows: the knowledge bases
+; (atp *tuna-kb* *tuna-query*)
+; (atp *west-kb* *west-query*)
+; (atp *smuggler-kb* *smuggler-query*)
+; (atp *coral-club-kb* *coral-club-query*)
 
 (defparameter *tuna-kb*
   (list
